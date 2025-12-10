@@ -31,11 +31,11 @@ For example, the refinement step in the sample workflow repeats until the summar
 
 Each run produces a step-by-step execution log capturing:
 
-Node executed
+* Node executed
 
-Tool applied
+* Tool applied
 
-Snapshot of state after the step
+* Snapshot of state after the step
 
 Users can retrieve current or final state using the run identifier.
 
@@ -43,11 +43,11 @@ Users can retrieve current or final state using the run identifier.
 
 The system exposes REST APIs for:
 
-Creating workflows
+* Creating workflows
 
-Triggering execution
+* Triggering execution
 
-Inspecting run state
+* Inspecting run state
 
 Interactive API documentation is available via Swagger UI.
 
