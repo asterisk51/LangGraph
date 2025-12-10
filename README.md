@@ -1,215 +1,154 @@
-#  AI Workflow Orchestration Engine
-Tredence – AI Engineering Coding Assignment
+# AI Workflow Orchestration Engine
+### Tredence – AI Engineering Assignment
+## Overview
 
-This project implements a minimal yet extensible workflow orchestration engine using FastAPI, Python, and a graph-based execution model.
-It satisfies all requirements of the assignment:
+This project implements a graph-based workflow orchestration engine for building and executing stateful, multi-step AI pipelines.
+The engine allows users to define workflows as directed graphs consisting of nodes (tools) and edges (transitions), supporting conditional branching, looping, shared state management, and execution logging.
 
-Define nodes (tools)
+The system is implemented using Python and FastAPI, and exposes APIs for creating workflows, executing them, and retrieving execution state.
 
-Connect them using edges with conditional branching
+A sample workflow demonstrating multi-step text summarization with refinement is included.
 
-Maintain a shared state dictionary
+## Key Features
+### Graph-Driven Execution
 
-Support looping until a condition is satisfied
+Workflows are represented as graphs where each node corresponds to a tool and edges define transitions. This supports sequential flows, conditional paths, and loops.
 
-Expose APIs for:
+### Shared Stateful Engine
 
-Creating a workflow (graph/create)
+Each tool operates on a shared state dictionary. Tools may read, modify, or add information to the state, enabling incremental computation across workflow steps.
 
-Running a workflow (graph/run)
+### Conditional Branching
 
-Checking workflow state (graph/state/{run_id})
+Edges may include conditions (e.g., summary_length > 400). At runtime, transitions are selected based on evaluated conditions.
 
-Provide a complete sample workflow (Summarization + Refinement) as required.
+### Loop Support
 
-##  Features
--> Graph-based workflow execution
+Loops are implemented by routing edges back to previously executed nodes when conditions are met.
+For example, the refinement step in the sample workflow repeats until the summary meets a target length.
 
-Each node is a "tool" operating on a shared state dict.
+### Execution Trace and State Introspection
 
-Edges define transitions between nodes.
+Each run produces a step-by-step execution log capturing:
 
-Optional conditions allow branching and loops.
+Node executed
 
--> Tool Registry
+Tool applied
 
-Tools are functions registered with decorators via @register_tool.
-New tools can be added easily without modifying the engine.
+Snapshot of state after the step
 
--> State Tracking + Logging
+Users can retrieve current or final state using the run identifier.
 
-Every step logs:
+### FastAPI Interface
 
-Node name
+The system exposes REST APIs for:
 
-Tool executed
+Creating workflows
 
-Snapshot of the state
+Triggering execution
 
-Accessible via graph/state/{run_id}.
+Inspecting run state
 
--> Built-in Sample Workflow
+Interactive API documentation is available via Swagger UI.
 
-A fully functional summarization pipeline:
+## Architecture Summary
 
-split_text — Split input into chunks
+* Tool Registry: Tools are registered dynamically using decorators.
 
-summarize_chunks — Summarize each chunk
+* Graph Definition: Nodes, edges, and starting node form a workflow definition.
 
-merge_summaries — Combine partial summaries
+* Execution Engine: Runs a graph from its starting node until no valid transition remains.
 
-refine_summary — Shorten iteratively
+* State Manager: Maintains and updates state across nodes.
 
-Loop until summary_length <= 400
+* Run Manager: Stores execution history and run metadata.
 
-Automatically registered at startup.
+## Installation
+```pip install fastapi uvicorn pydantic``
 
+## Running the Server
+```uvicorn app.main:app --reload``
 
-##  Running the Server
 
-Install dependencies:
+### API documentation appears at:
 
-pip install fastapi uvicorn pydantic
+http://localhost:8000/docs
 
+## API Endpoints
+### Create a Graph
 
-Start the server:
+`POST /graph/create`
+Defines a new workflow by specifying nodes, edges, and the start node.
 
-uvicorn app.main:app --reload
+### Run a Graph
 
+`POST /graph/run`
+Executes a workflow with an initial state and returns the run ID, final state, and execution log.
 
-API docs:
+### Get Run State
 
-👉 http://127.0.0.1:8000/docs
+`GET /graph/state/{run_id}`
+Retrieves execution status, state, and logs of a specific workflow run.
 
-##  API Endpoints
-### 1. Create a Workflow
+### Sample Workflow
 
-POST /graph/create
+`GET /graph/sample_id`
+Returns a pre-configured summarization workflow included with the engine.
 
-Request structure:
+## Sample Workflow: Summarization with Refinement
 
-{
-  "nodes": [...],
-  "edges": [...],
-  "start_node": "split"
-}
+The project includes a complete example that performs:
 
+1. Text splitting
 
-Returns:
+2. Chunk-level summarization
 
-{ "graph_id": "<uuid>" }
+3. Merging partial summaries
 
-### 2️. Run a Workflow
+4. Refinement iterations until a target length is achieved
 
-POST /graph/run
+### Nodes
+| Node | Tool | Description |
+| --- | --- |
+| split | split_text | Splits text into fixed-size chunks |
+| summarize | summarize_chunks | Summarizes each chunk |
+| merge | merge_summaries | Merges partial summaries |
+| refine | refine_summary | Shortens summary iteratively |
+### Loop Condition
 
-Example:
+The workflow loops on the `refine` node while:
 
-{
-  "graph_id": "<your-graph-id>",
-  "initial_state": {
-    "text": "Your long document here..."
-  }
-}
+`summary_length > 400`
 
 
-Returns:
+This demonstrates the engine’s ability to handle branching and looping with state-based conditions.
 
-run_id
+## Design Highlights
 
-final_state
+* Tools are modular, stateless functions that read and modify a global state dictionary.
 
-log
+* Workflows allow flexible control flow modeling through graph edges.
 
-### 3️. Check Workflow State
+* Execution snapshots enable debugging, monitoring, and reproducibility.
 
-GET /graph/state/{run_id}
+* FastAPI provides a clean API surface for programmatic or manual testing.
 
-Returns:
+## Future Enhancements
 
-Status (pending/running/completed/failed)
+If extended beyond assignment scope, improvements could include:
 
-Current node
+* Persistent storage (SQLite/Postgres) for graphs and runs
 
-State dict
+* Asynchronous or distributed execution
 
-Execution log
+* Richer condition expressions
 
-### 4️. Get Sample Workflow ID
+* User-defined state schemas
 
-A pre-configured summarization workflow is created at startup.
+* Web interface for visual workflow construction
 
-Endpoint:
+* LLM-powered tools for more advanced workflows
 
-GET /graph/sample_id
+## Purpose
 
-Example response:
-
-{ "graph_id": "6c7f...." }
-
-
-Use this ID directly for testing.
-
-##  Tool Registry
-
-Tools are registered using:
-
-@register_tool("tool_name")
-def function(state, config):
-    ...
-
-
-This makes adding new tools extremely simple.
-
-##  Design Choices & Possible Enhancements
--> Current Design Strengths
-
-Fully modular tool system
-
-Clean graph execution logic
-
-Supports multi-step workflows with branching
-
-Logging & step-by-step state replay
-
-FastAPI makes APIs self-documented
-
--> If more time was available:
-
-Add persistence (SQLite/Postgres) for graphs & runs
-
-Add async execution & background processing
-
-Stream logs via WebSockets
-
-Integrate actual LLM-based summarization tools
-
-Add schema validation for the state
-
-##  Example: Running the Sample Workflow
-
-Start server
-
-Call:
-
-GET /graph/sample_id
-
-
-Use returned graph_id in:
-
-POST /graph/run
-
-
-Body:
-
-{
-  "graph_id": "<sample-id>",
-  "initial_state": {
-    "text": "Paste long text here for summarization..."
-  }
-}
-
-
-Check state:
-
-GET /graph/state/<run-id>
+This implementation was developed as part of Tredence’s AI Engineering assignment to demonstrate skills in designing workflow engines, managing state, handling conditional logic, and exposing functionalities via APIs.
