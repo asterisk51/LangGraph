@@ -108,12 +108,14 @@ The project includes a complete example that performs:
 4. Refinement iterations until a target length is achieved
 
 ### Nodes
-| Node | Tool | Description |
-| --- | --- |
-| split | split_text | Splits text into fixed-size chunks |
-| summarize | summarize_chunks | Summarizes each chunk |
-| merge | merge_summaries | Merges partial summaries |
-| refine | refine_summary | Shortens summary iteratively |
+### Nodes
+| Node     | Tool               | Description                        |
+|----------|--------------------|------------------------------------|
+| split    | split_text         | Splits text into fixed-size chunks |
+| summarize| summarize_chunks   | Summarizes each chunk              |
+| merge    | merge_summaries    | Merges partial summaries           |
+| refine   | refine_summary     | Shortens summary iteratively       |
+
 ### Loop Condition
 
 The workflow loops on the `refine` node while:
