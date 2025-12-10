@@ -64,10 +64,10 @@ Interactive API documentation is available via Swagger UI.
 * Run Manager: Stores execution history and run metadata.
 
 ## Installation
-```pip install fastapi uvicorn pydantic``
+```pip install fastapi uvicorn pydantic```
 
 ## Running the Server
-```uvicorn app.main:app --reload``
+```uvicorn app.main:app --reload``` 
 
 
 ### API documentation appears at:
